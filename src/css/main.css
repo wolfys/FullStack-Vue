@@ -1,0 +1,40 @@
+@media (min-width: 576px) {
+    .container, .container2 {
+        max-width: 540px;
+    }
+}
+
+@media (min-width: 768px) {
+    .container, .container2 {
+        max-width: 720px;
+    }
+}
+
+@media (min-width: 992px) {
+    .container, .container2 {
+        max-width: 960px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .container, .container2 {
+        max-width: 1140px;
+    }
+}
+
+@media (min-width: 1452px) {
+    .container, .container2 {
+        max-width: 1360px;
+    }
+}
+
+.container, .container2, .container-fluid {
+    width: 100%;
+    padding-right: 12px;
+    padding-left: 12px;
+    margin: 0 auto;
+    position: relative;
+}
+.p-inputtext {
+    width: 100%;
+}
