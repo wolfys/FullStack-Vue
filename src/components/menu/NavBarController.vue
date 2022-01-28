@@ -13,6 +13,7 @@
 import AuthComponent from "../../components/auth/AuthComponent";
 import RegisterComponent from "../../components/auth/RegisterComponent";
 import Menubar from 'primevue/menubar';
+import {useVuelidate} from "@vuelidate/core";
 export default {
   name: "NavBarController",
   data() {
@@ -26,6 +27,7 @@ export default {
       ]
     }
   },
+  setup: () => ({v$: useVuelidate()}),
   components: {
     Menubar,
     RegisterComponent,

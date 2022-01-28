@@ -17,7 +17,11 @@
       <small v-if="(v$.email.$invalid && submitted) || v$.email.$pending.$response" class="p-error mb-2">
         Пожалуйста введите корректный пароль.
       </small> <br />
-      <Button type="submit" @click="handleSubmit()" label="Зарегистрироваться" autofocus />
+      <div class="grid">
+        <div class="col-offset-9 col-3">
+          <Button type="submit" @click="handleSubmit()" label="Зарегистрироваться" autofocus />
+        </div>
+      </div>
     </form>
   </Dialog>
 </template>
