@@ -6,6 +6,7 @@ import store from './store'
 import PrimeVue from 'primevue/config'
 import ToastService from 'primevue/toastservice'
 import ConfirmationService from 'primevue/confirmationservice'
+import BadgeDirective from 'primevue/badgedirective';
 
 import 'primevue/resources/primevue.min.css'
 import 'primevue/resources/themes/saga-blue/theme.css'
@@ -22,6 +23,7 @@ app.use(PrimeVue, {
         monthNamesShort: ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь","Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"],
     }
 })
+app.directive('badge', BadgeDirective);
 app.use(ToastService)
 app.use(ConfirmationService)
 app.use(router)

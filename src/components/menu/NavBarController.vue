@@ -1,8 +1,10 @@
 <template>
  <Menubar :model="items">
+   <template #start>
+     <b class="mr-4">Shop Platonov</b>
+   </template>
    <template #end>
      <div>
-       <RegisterComponent />
        <AuthComponent />
      </div>
    </template>
@@ -11,7 +13,6 @@
 
 <script>
 import AuthComponent from "../../components/auth/AuthComponent";
-import RegisterComponent from "../../components/auth/RegisterComponent";
 import Menubar from 'primevue/menubar';
 import {useVuelidate} from "@vuelidate/core";
 export default {
@@ -30,7 +31,6 @@ export default {
   setup: () => ({v$: useVuelidate()}),
   components: {
     Menubar,
-    RegisterComponent,
     AuthComponent
   }
 }

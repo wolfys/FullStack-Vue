@@ -1,6 +1,4 @@
 <template>
-  <Button class="ml-2" @click="displayDialog">Регистрация</Button>
-  <Dialog header="Регистрация" v-model:visible="display"  :style="{width: '50vw'}">
     <form @submit.prevent="handleSubmit(!v$.$invalid)" class="p-fluid">
       Ваша Имя <br />
       <InputText v-model="v$.name.$model" :class="{'p-invalid':v$.name.$invalid && submitted}" class="inputfield w-full mt-1" />
@@ -14,7 +12,7 @@
       </small> <br />
       Ваш Пароль <br />
       <Password  class="inputfield w-full mt-1 mb-2 geInput" :class="{'p-invalid':v$.password.$invalid && submitted}" v-model="v$.password.$model" :feedback="false" toggleMask />
-      <small v-if="(v$.email.$invalid && submitted) || v$.email.$pending.$response" class="p-error mb-2">
+      <small v-if="(v$.password.$invalid && submitted) || v$.password.$pending.$response" class="p-error mb-2">
         Пожалуйста введите корректный пароль.
       </small> <br />
       <div class="grid">
@@ -23,16 +21,15 @@
         </div>
       </div>
     </form>
-  </Dialog>
 </template>
 
 <script>
 import Button from 'primevue/button'
-import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import {useVuelidate} from "@vuelidate/core"
 import {email, required, minLength} from "@vuelidate/validators"
+import axios from "axios";
 
 export function validPassword(name) {
   let validNamePattern = new RegExp("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$");
@@ -71,6 +68,9 @@ export default {
     }
   },
   methods: {
+    toastCreate() {
+      this.$toast.add({severity: 'success', summary: 'Успешно', detail: 'Выполнен вход на сайт :)', life: 3000});
+    },
     displayDialog() {
       this.display = true
     },
@@ -82,12 +82,35 @@ export default {
       return this.addUsers()
     },
     addUsers() {
-      console.log('123');
+      axios.request({
+        url: this.$store.getters.apiUrl + '/auth/registration',
+        method: 'post',
+        data: {
+          name: this.name,
+          email: this.email,
+          password: this.password
+        }
+      }).then(res => {
+        console.log(res)
+        this.$toast.add({severity: 'success', summary: 'Успешно', detail: 'Регистрация на сайте', life: 3000});
+        this.display = false
+        this.$router.push('/complete-register')
+      }).catch(err => {
+        if (err.response.data.errors.email) {
+          if (err.response.data.errors.email[0] === 'The email has already been taken.') {
+            this.$toast.add({
+              severity: 'error',
+              summary: 'Ошибка',
+              detail: 'Email - ' + this.email + ' используется другим пользователем',
+              life: 3000
+            })
+          }
+        }
+      })
     }
   },
   components: {
     Button,
-    Dialog,
     InputText,
     Password
   }
