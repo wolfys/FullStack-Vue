@@ -9,7 +9,7 @@ import ConfirmationService from 'primevue/confirmationservice'
 import BadgeDirective from 'primevue/badgedirective';
 
 import 'primevue/resources/primevue.min.css'
-import 'primevue/resources/themes/saga-blue/theme.css'
+import 'primevue/resources/themes/mdc-light-indigo/theme.css'
 import 'primeflex/primeflex.min.css'
 import 'primeicons/primeicons.css'
 import './css/main.css'

@@ -109,8 +109,14 @@
               Адреса не добавлены на сайт.
             </div>
             <div v-else>
+              <div v-for="(items, index) in street" v-bind:key="index">
+                <div class="field-radiobutton">
+                  <RadioButton v-model="radioMainStreet" :value="items.id" :id="'street' + items.id"/>
+                  <label :for="'street' + items.id">{{ items.address }}</label>
+                </div>
+              </div>
               <div class="mt-2">
-                <Button>Сохранить</Button>
+                <Button @click="saveNewMainStreet">Сохранить</Button>
               </div>
             </div>
           </div>
@@ -169,6 +175,7 @@ import Checkbox from "primevue/checkbox";
 import Card from "primevue/card";
 import Image from "primevue/image";
 import AutoComplete from "primevue/autocomplete";
+import RadioButton from "primevue/radiobutton"
 import axios from "axios";
 
 export default {
@@ -187,6 +194,7 @@ export default {
       newStreetMain: false,
       street: null,
       loadingStreet: true,
+      radioMainStreet: null,
     }
   },
   components: {
@@ -196,7 +204,8 @@ export default {
     Checkbox,
     Card,
     Image,
-    AutoComplete
+    AutoComplete,
+    RadioButton
   },
   methods: {
     getUsers() {
@@ -223,6 +232,7 @@ export default {
       }).then(res => {
         this.street = res.data
         this.loadingStreet = false
+        this.radioMainStreet = res.data.find(el => el.main === 1).id
       })
     },
     saveMainInfo() {
@@ -341,6 +351,36 @@ export default {
         this.$toast.add({severity: 'success', summary: 'Успешно', detail: res.data.message, life: 3000});
         this.loading = true
         this.data = null
+        this.newStreetMain = false
+        this.newStreet = ''
+        this.getUsers()
+      }).catch(err => {
+        console.log(err.response)
+        this.$toast.add({
+          severity: 'error',
+          summary: 'Ошибка',
+          detail: err.response.data.errors.picture[0],
+          life: 3000
+        });
+      })
+    },
+    saveNewMainStreet() {
+      axios.request({
+        url: this.$store.getters.apiUrl + "/front/profile/saveNewMainStreet",
+        method: "post",
+        headers: {
+          'Authorization': 'Bearer ' + this.$store.getters.BEARER
+        },
+        data: {
+          mainStreet: this.radioMainStreet
+        }
+      }).then(res => {
+        console.log(res.data)
+        this.$toast.add({severity: 'success', summary: 'Успешно', detail: res.data.message, life: 3000});
+        this.loading = true
+        this.data = null
+        this.newStreetMain = false
+        this.newStreet = ''
         this.getUsers()
       }).catch(err => {
         console.log(err.response)
