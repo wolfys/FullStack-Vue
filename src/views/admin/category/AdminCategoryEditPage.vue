@@ -3,15 +3,16 @@
     <div class="col-12">
       <Breadcrumb :home="home" :model="items"></Breadcrumb>
     </div>
-    <div class="col-12">
+    <i v-if="loading" class="pi pi-spin pi-spinner mt-2" style="font-size: 2rem"></i>
+    <div v-else class="col-12">
       <div class="grid flex justify-content-end  flex-wrap">
         <div class="col-12">
           Название категории <br/>
-          <InputText class="inputfield w-full mt-1 mb-2 geInput" v-model="name" autofocus/>
-          Название категории <br/>
-          <Textarea class="inputfield w-full mt-1 mb-2 geInput" v-model="description"/>
-          {{ description }}
+          <InputText class="inputfield w-full mt-1 mb-2 geInput" v-model="category.name" autofocus/>
+          Описание категории категории <br/>
+          <Textarea class="inputfield w-full mt-1 mb-2 geInput" v-model="category.description" :autoResize="true" rows="5" cols="30"/>
           Картинка категории <br/>
+          <Image :src="url + '/' + category.picture"  width="250" preview />
           <input type="file" id="file" ref="file" class="inputfield w-full mt-1 mb-2 geInput" v-on:change="handleFileUpload()"/>
         </div>
         <div class="col-offset-10 col-2">
@@ -23,29 +24,42 @@
 </template>
 
 <script>
-import Breadcrumb from "primevue/breadcrumb"
-import InputText from "primevue/inputtext"
+import Breadcrumb from "primevue/breadcrumb";
+import InputText from "primevue/inputtext";
 import axios from "axios";
-import Button from "primevue/button"
-import Textarea from 'primevue/textarea'
+import Textarea from "primevue/textarea"
+import Button from "primevue/button";
+import Image from 'primevue/image';
 
 export default {
-  name: "AdminCategoryNewPage",
+  name: "AdminCategoryEditPage",
   data() {
     return {
       home: {icon: 'pi pi-home', to: '/admin'},
       items: [
         {label: 'Категории', to: '/admin/category'},
-        {label: 'Добавить', to: ''}
+        {label: 'Редактировать', to: ''}
       ],
       loading: true,
+      category: null,
       url: this.$store.getters.imageUrl,
-      file: '',
-      name: '',
-      description: '',
+      id: this.$route.params.id,
+      file: ''
     }
   },
   methods: {
+    getCategory() {
+      axios.request({
+        url: this.$store.getters.apiUrl + "/front/category/find",
+        method: "post",
+        data: {
+          id: this.$route.params.id
+        }
+      }).then(res => {
+        this.category = res.data[0]
+        this.loading = false
+      })
+    },
     handleFileUpload() {
       this.file = this.$refs.file.files[0];
     },
@@ -53,9 +67,9 @@ export default {
       let formData = new FormData();
       formData.append('id',this.id)
       formData.append('picture',this.file)
-      formData.append('name',this.name)
-      formData.append('description',this.description)
-      axios.post(this.$store.getters.apiUrl + "/admin/category/add",formData, {
+      formData.append('name',this.category.name)
+      formData.append('description',this.category.description)
+      axios.post(this.$store.getters.apiUrl + "/admin/category/save",formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': 'Bearer ' + this.$store.getters.BEARER
@@ -74,7 +88,8 @@ export default {
     Breadcrumb,
     InputText,
     Textarea,
-    Button
+    Button,
+    Image
   },
   mounted() {
     this.getCategory()

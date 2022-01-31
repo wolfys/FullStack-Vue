@@ -30,6 +30,20 @@ const routes = [
         component:() => import('../views/auth/Register')
       },
       {
+        path: 'product/:id',
+        name: 'ProductPage',
+        component: () => import('../views/front/ProductPage')
+      },
+      {
+        path: 'profile',
+        name: 'Profile',
+        meta: {
+          requiresAuth: true,
+          roleUsers: [0,1]
+        },
+        component: () => import('../views/front/ProfilePage')
+      },
+      {
         path: 'admin',
         name: 'AdminPage',
         meta: {
@@ -63,7 +77,7 @@ const routes = [
               requiresAuth: true,
               roleUsers: [1]
             },
-            component: () => import('../views/admin/AdminCategoryPage'),
+            component: () => import('../views/admin/category/AdminCategoryPage'),
           },
           {
             path: 'category/add',
@@ -72,7 +86,7 @@ const routes = [
               requiresAuth: true,
               roleUsers: [1]
             },
-            component: () => import('../views/admin/AdminCategoryNewPage'),
+            component: () => import('../views/admin/category/AdminCategoryNewPage'),
           },
           {
             path: 'category/edit/:id',
@@ -81,28 +95,37 @@ const routes = [
               requiresAuth: true,
               roleUsers: [1]
             },
-            component: () => import('../views/admin/AdminCategoryEditPage'),
+            component: () => import('../views/admin/category/AdminCategoryEditPage'),
+          },
+          {
+            path: 'product',
+            name: 'ProductAdminPage',
+            meta: {
+              requiresAuth: true,
+              roleUsers: [1]
+            },
+            component: () => import('../views/admin/product/AdminProductPage')
+          },
+          {
+            path: 'product/add',
+            name: 'ProductAddAdminPage',
+            meta: {
+              requiresAuth: true,
+              roleUsers: [1]
+            },
+            component: () => import('../views/admin/product/AdminProductNewPage')
+          },
+          {
+            path: 'product/edit/:id',
+            name: 'ProductEditAdminPage',
+            meta: {
+              requiresAuth: true,
+              roleUsers: [1]
+            },
+            component: () => import('../views/admin/product/AdminProductEditPage')
           }
       ]
       },
-      {
-        path: 'product/:id',
-        name: 'ProductPage',
-        meta: {
-          requiresAuth: true,
-          roleUsers: [1]
-        },
-        component: () => import('../views/front/ProductPage')
-      },
-      {
-        path: 'profile',
-        name: 'Profile',
-        meta: {
-          requiresAuth: true,
-          roleUsers: [0,1]
-        },
-        component: () => import('../views/front/ProfilePage')
-      }
     ]
   }
 ]
@@ -153,7 +176,7 @@ router.beforeEach((to, from, next) => {
   } else {
     next()
   }
-  console.log(to.matched.some(record => record.meta.roleUsers))
+
   if(to.matched.some(record => record.meta.roleUsers)) {
     if(rec.includes(store.getters.roleUsers)) {
       next('/')

@@ -11,6 +11,9 @@
           showGridlines
           stripedRows
           :paginator="true"
+          v-model:filters="filters"
+          filterDisplay="menu"
+          :globalFilterFields="['name']"
           :rows="10"
           paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
           :rowsPerPageOptions="[10,20,50]"
@@ -25,18 +28,23 @@
                     </span>
             </div>
             <div class="col-offset-6 col-2 flex align-items-center justify-content-center">
-              <router-link to="/admin/category/add">
+              <router-link to="/admin/product/add">
               <Button>Добавить</Button>
               </router-link>
             </div>
           </div>
         </template>
+        <template #empty>
+          Товары отсутствуют в нашем магазине.
+        </template>
         <Column field="id" header="Id" :sortable="true"></Column>
         <Column field="name" header="Имя" :sortable="true"></Column>
         <Column field="description" header="Описание" :sortable="true"></Column>
+        <Column field="price" header="Цена" :sortable="true"></Column>
+        <Column field="categories" header="Категория" :sortable="true"></Column>
         <Column :exportable="false" style="min-width:2rem">
           <template #body="slotProps">
-            <router-link :to="'category/edit/' + slotProps.data.id">
+            <router-link :to="'product/edit/' + slotProps.data.id">
               <Button icon="pi pi-pencil"
                       class="p-button-rounded p-button-success mr-2"
               />
@@ -63,7 +71,7 @@ export default {
     return {
       home: {icon: 'pi pi-home', to: '/admin'},
       items: [
-        {label: 'Категории', to: '/admin/category'}
+        {label: 'Товары', to: '/admin/product'}
       ],
       loading: true,
       category: null,
@@ -78,7 +86,7 @@ export default {
   methods: {
     getUsers() {
       axios.request({
-        url: this.$store.getters.apiUrl + "/front/category",
+        url: this.$store.getters.apiUrl + "/front/product",
         method: "get",
       }).then(res => {
         this.category = res.data

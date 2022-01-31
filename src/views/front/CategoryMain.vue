@@ -1,7 +1,10 @@
 <template>
   <i v-if="loading" class="pi pi-spin pi-spinner mt-2" style="font-size: 2rem"></i>
   <div v-else class="grid mt-2">
-    <div v-for="(item, index) in data" :key="index" class="col-3">
+    <div class="col-12" v-if="!data">
+      Упс. Увы на нашем сайте нет категорий..
+    </div>
+    <div v-else v-for="(item, index) in data" :key="index" class="col-3">
       <Card>
         <template #header>
           <img :alt="item.name" :src="url + '/' + item.picture" width="300" height="300">
