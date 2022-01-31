@@ -339,9 +339,9 @@ export default {
       }).then(res => {
         console.log(res.data)
         this.$toast.add({severity: 'success', summary: 'Успешно', detail: res.data.message, life: 3000});
-        // this.loading = true
-        // this.data = null
-        // this.getUsers()
+        this.loading = true
+        this.data = null
+        this.getUsers()
       }).catch(err => {
         console.log(err.response)
         this.$toast.add({
