@@ -27,7 +27,10 @@
                         <InputText v-model="filters['global'].value" placeholder="Keyword Search" />
                     </span>
             </div>
-            <div class="col-offset-6 col-2 flex align-items-center justify-content-center">
+            <div class="col-offset-2 col-2  flex align-items-center justify-content-center">
+              <Button @click="productDownload">Скачать Продукты</Button>
+            </div>
+            <div class="col-offset-2 col-2 flex align-items-center justify-content-center">
               <router-link to="/admin/product/add">
               <Button>Добавить</Button>
               </router-link>
@@ -64,6 +67,7 @@ import Column from "primevue/column"
 import Button from "primevue/button"
 import {FilterMatchMode, FilterOperator} from "primevue/api";
 import InputText from "primevue/inputtext"
+import moment from "moment/moment";
 
 export default {
   name: "AdminCategoryPage",
@@ -93,6 +97,26 @@ export default {
         this.loading = false
       })
     },
+    productDownload()
+    {
+      axios.request({
+        url: this.$store.getters.apiUrl + "/admin/product/exportProduct",
+        method: 'post',
+        headers: {
+          'Authorization': 'Bearer ' + this.$store.getters.BEARER
+        },
+        responseType: 'blob'
+      }).then((response) => {
+        const fileURL = window.URL.createObjectURL(new Blob([response.data]));
+        const fileLink = document.createElement('a');
+        fileLink.href = fileURL;
+        const time = moment().format();
+        fileLink.setAttribute('download', time + '_exportProduct.csv');
+        document.body.appendChild(fileLink);
+        fileLink.click();
+      })
+
+    }
   },
   mounted() {
     this.getUsers()
