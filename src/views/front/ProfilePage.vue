@@ -7,7 +7,7 @@
           Основная информация
         </template>
         <template #content>
-          <div class="mt-2">
+          <div>
             Почта <br/>
             <InputText type="email" name="email" class="inputfield w-full mt-2 mb-2" v-model="data.email" disabled/>
           </div>
@@ -22,7 +22,7 @@
             />
           </div>
           <div class="mt-2">
-            <Button>Сохранить</Button>
+            <Button @click="saveMainInfo">Сохранить</Button>
           </div>
         </template>
       </Card>
@@ -53,7 +53,7 @@
                 class="inputfield w-full mt-2 mb-2"
                 name="password"
                 type="password"
-                v-model="data.newPassword"
+                v-model="newPassword"
             />
           </div>
           <div class="mb-3">
@@ -64,11 +64,11 @@
                 class="inputfield w-full mt-2 mb-2"
                 name="password_confirmation"
                 type="password"
-                v-model="data.newPassword2"
+                v-model="newPassword2"
             />
           </div>
           <div class="mt-2">
-            <Button>Сохранить</Button>
+            <Button @click="saveNewPassword">Сохранить</Button>
           </div>
         </template>
       </Card>
@@ -76,22 +76,23 @@
     <div class="col-4">
       <Card>
         <template #title>
-          Изменить пароль
+          Изменить аватар
         </template>
         <template #content>
-          <div class="mt-2">
+          <div>
             <label class="form-label">
               Изображение
             </label>
             <br>
             <Image alt=""
                    width="100"
-                 :src="url + '/' + data.picture"  preview
+                   :src="url + '/' + data.picture" preview
             />
-            <InputText class="inputfield w-full mt-2 mb-2" name="picture" type="file"/>
+            <input class="inputfield w-full mt-2 mb-2" id="file" ref="file" name="picture" type="file"
+                   v-on:change="handleFileUpload()"/>
           </div>
           <div class="mt-2">
-            <Button>Сохранить</Button>
+            <Button @click="saveNewAvatar">Сохранить</Button>
           </div>
         </template>
       </Card>
@@ -102,8 +103,16 @@
           Список адресов
         </template>
         <template #content>
-          <div class="mt-2">
-            <Button>Сохранить</Button>
+          <i v-if="loadingStreet" class="pi pi-spin pi-spinner mt-2" style="font-size: 2rem"></i>
+          <div v-else>
+            <div v-if="street.length === 0">
+              Адреса не добавлены на сайт.
+            </div>
+            <div v-else>
+              <div class="mt-2">
+                <Button>Сохранить</Button>
+              </div>
+            </div>
           </div>
         </template>
       </Card>
@@ -114,27 +123,41 @@
           Добавить новый адрес
         </template>
         <template #content>
-          <InputText name="new_address" class="inputfield w-full mt-2 mb-2"/>
-          <div class="field-checkbox">
-            <Checkbox id="city1" name="city" value="Chicago" v-model="newAdressMain" />
+          <AutoComplete
+              class="inputfield w-full mt-1"
+              v-model="newStreet"
+              :suggestions="filteredCountriesBasic"
+              @complete="searchStreet($event)"
+              @item-select="selectStreet()"
+              placeholder="Улица проживания"
+              minLength="3"
+              inputClass="inputfield w-full"
+              field="street_with_type">
+            {{ newStreet }}
+            <template #content="slotProps">
+              <div class="country-item">
+                <div class="p-ml-2">{{ slotProps.item.value }}</div>
+              </div>
+            </template>
+            <template #chip="slotProps">
+              {{ slotProps }}
+            </template>
+            <template #item="slotProps">
+              <div class="country-item">
+                <div class="p-ml-2">{{ slotProps.item.value }}</div>
+              </div>
+            </template>
+          </AutoComplete>
+          <div class="field-checkbox mt-2">
+            <Checkbox class="mt-2" id="city1" name="city" value="Chicago" v-model="newStreetMain"/>
             <label for="city1">Основной адресс</label>
           </div>
           <div class="mt-2">
-            <Button>Сохранить</Button>
+            <Button @click="saveNewStreet">Сохранить</Button>
           </div>
         </template>
       </Card>
     </div>
-    <div class="mb-3">
-      <label class="form-label">
-        Новый адрес
-      </label>
-      <InputText name="new_address" class="inputfield w-full mt-2 mb-2"/>
-      <label>Сделать основным</label>
-      <Checkbox type="checkbox"/>
-    </div>
-    <Button type="submit" class="btn btn-primary">Сохранить</Button>
-    {{ data }}
   </div>
 </template>
 
@@ -145,6 +168,7 @@ import Password from "primevue/password";
 import Checkbox from "primevue/checkbox";
 import Card from "primevue/card";
 import Image from "primevue/image";
+import AutoComplete from "primevue/autocomplete";
 import axios from "axios";
 
 export default {
@@ -153,7 +177,16 @@ export default {
     return {
       loading: true,
       data: '',
-      url: this.$store.getters.imageUrl
+      url: this.$store.getters.imageUrl,
+      id: null,
+      newPassword: '',
+      newPassword2: '',
+      file: null,
+      newStreet: null,
+      filteredCountriesBasic: null,
+      newStreetMain: false,
+      street: null,
+      loadingStreet: true,
     }
   },
   components: {
@@ -162,7 +195,8 @@ export default {
     Password,
     Checkbox,
     Card,
-    Image
+    Image,
+    AutoComplete
   },
   methods: {
     getUsers() {
@@ -174,7 +208,148 @@ export default {
         }
       }).then(res => {
         this.data = res.data
+        this.id = res.data.id
         this.loading = false
+        this.getStreetList()
+      })
+    },
+    getStreetList() {
+      axios.request({
+        url: this.$store.getters.apiUrl + "/front/profile/streetList",
+        method: "post",
+        headers: {
+          'Authorization': 'Bearer ' + this.$store.getters.BEARER
+        }
+      }).then(res => {
+        this.street = res.data
+        this.loadingStreet = false
+      })
+    },
+    saveMainInfo() {
+      axios.request({
+        url: this.$store.getters.apiUrl + "/front/profile/saveMainInfo",
+        method: "post",
+        headers: {
+          'Authorization': 'Bearer ' + this.$store.getters.BEARER
+        },
+        data: {
+          name: this.data.name
+        }
+      }).then(res => {
+        this.$toast.add({severity: 'success', summary: 'Успешно', detail: res.data.message, life: 3000});
+        this.loading = true
+        this.data = null
+        this.getUsers()
+      }).catch(err => {
+        this.$toast.add({
+          severity: 'error',
+          summary: 'Ошибка',
+          detail: err.response.data.errors,
+          life: 3000
+        });
+      })
+    },
+    saveNewPassword() {
+      axios.request({
+        url: this.$store.getters.apiUrl + "/front/profile/saveNewPassword",
+        method: "post",
+        headers: {
+          'Authorization': 'Bearer ' + this.$store.getters.BEARER
+        },
+        data: {
+          password: this.data.password,
+          newPassword: this.newPassword,
+          newPassword2: this.newPassword2
+        }
+      }).then(res => {
+        this.$toast.add({severity: 'success', summary: 'Успешно', detail: res.data.message, life: 3000});
+        this.loading = true
+        this.data = null
+        this.getUsers()
+      }).catch(err => {
+        this.$toast.add({
+          severity: 'error',
+          summary: 'Ошибка',
+          detail: err.response.data.errors,
+          life: 3000
+        });
+      })
+    },
+    handleFileUpload() {
+      this.file = this.$refs.file.files[0];
+    },
+    saveNewAvatar() {
+      let formData = new FormData();
+      formData.append('picture', this.file)
+      axios.post(this.$store.getters.apiUrl + "/front/profile/saveNewAvatar", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': 'Bearer ' + this.$store.getters.BEARER
+        }
+      }).then(res => {
+        console.log(res.data)
+        this.$toast.add({severity: 'success', summary: 'Успешно', detail: res.data.message, life: 3000});
+        this.loading = true
+        this.data = null
+        this.getUsers()
+      }).catch(err => {
+        console.log(err.response)
+        this.$toast.add({
+          severity: 'error',
+          summary: 'Ошибка',
+          detail: err.response.data.errors.picture[0],
+          life: 3000
+        });
+      })
+    },
+    searchStreet(event) {
+      axios.request({
+        url: 'https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address',
+        method: "POST",
+        mode: 'cors',
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": "Token c8eeb106ae0cb42039d2004fc8ec5f48569589c8"
+        },
+        data: JSON.stringify({query: event.query})
+      }).then(response => {
+        this.filteredCountriesBasic = response.data.suggestions
+      })
+          .catch(error => {
+            console.log(error);
+            this.errored = true;
+          })
+          .finally(() => (this.loading = false))
+    },
+    selectStreet() {
+      this.newStreet = this.newStreet.unrestricted_value
+    },
+    saveNewStreet() {
+      axios.request({
+        url: this.$store.getters.apiUrl + "/front/profile/saveNewStreet",
+        method: "post",
+        headers: {
+          'Authorization': 'Bearer ' + this.$store.getters.BEARER
+        },
+        data: {
+          street: this.newStreet,
+          mainStreet: this.newStreetMain
+        }
+      }).then(res => {
+        console.log(res.data)
+        this.$toast.add({severity: 'success', summary: 'Успешно', detail: res.data.message, life: 3000});
+        // this.loading = true
+        // this.data = null
+        // this.getUsers()
+      }).catch(err => {
+        console.log(err.response)
+        this.$toast.add({
+          severity: 'error',
+          summary: 'Ошибка',
+          detail: err.response.data.errors.picture[0],
+          life: 3000
+        });
       })
     }
   },
